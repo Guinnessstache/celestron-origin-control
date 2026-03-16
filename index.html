@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Celestron Origin Control — Desktop Observatory Companion</title>
+  <meta name="description" content="Free Windows desktop companion app for the Celestron Origin Intelligent Home Observatory. Live view, streaming, mount control, and more."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ─── Reset & Variables ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #04070f;
+      --bg2:        #080e1a;
+      --bg3:        #0c1422;
+      --card:       #0d1626;
+      --border:     rgba(79,195,247,.15);
+      --border2:    rgba(79,195,247,.08);
+      --accent:     #4fc3f7;
+      --accent2:    #00e5ff;
+      --gold:       #ffd54f;
+      --text:       #e8edf5;
+      --dim:        #6b8aad;
+      --kofi:       #ff5e1a;
+      --font-head:  'Orbitron', monospace;
+      --font-body:  'DM Sans', sans-serif;
+      --font-mono:  'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── Star field canvas ──────────────────────────────────────────────────── */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── Layout ────────────────────────────────────────────────────────────── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    section {
+      position: relative;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── Nav ───────────────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      background: rgba(4,7,15,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .nav-logo {
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .08em;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 12px;
+      color: var(--dim);
+      text-decoration: none;
+      letter-spacing: .05em;
+      font-family: var(--font-mono);
+      transition: color .2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    .nav-download {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 7px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .nav-download:hover { background: var(--accent2); }
+
+    /* ─── Hero ──────────────────────────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 60px;
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      padding: 80px 0;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-family: var(--font-head);
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -.01em;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    h1 span {
+      color: var(--accent);
+      display: block;
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      color: var(--dim);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      font-weight: 300;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: #04070f;
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all .2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(79,195,247,.3);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-decoration: none;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: all .2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 20px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .hero-meta-item {
+      font-size: 12px;
+      color: var(--dim);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .hero-meta-item::before {
+      content: '✓';
+      color: var(--accent);
+    }
+
+    /* Telescope illustration */
+    .hero-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .scope-container {
+      position: relative;
+      width: 340px;
+      height: 340px;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      animation: spin linear infinite;
+    }
+
+    .orbit-ring:nth-child(1) {
+      inset: 0;
+      animation-duration: 20s;
+    }
+    .orbit-ring:nth-child(2) {
+      inset: 30px;
+      animation-duration: 15s;
+      animation-direction: reverse;
+    }
+    .orbit-ring:nth-child(3) {
+      inset: 60px;
+      animation-duration: 10s;
+      border-color: rgba(79,195,247,.12);
+    }
+
+    .orbit-dot {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      top: -3px;
+      left: calc(50% - 3px);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .scope-svg {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ─── Stats bar ─────────────────────────────────────────────────────────── */
+    .stats-bar {
+      background: var(--bg2);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2);
+      padding: 28px 0;
+    }
+
+    .stats-inner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 0 24px;
+      border-right: 1px solid var(--border2);
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: var(--font-head);
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    /* ─── Features ──────────────────────────────────────────────────────────── */
+    #features {
+      padding: 100px 0;
+    }
+
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-eyebrow::before, .section-eyebrow::after {
+      content: '';
+      flex: 1;
+      max-width: 40px;
+      height: 1px;
+      background: var(--accent);
+      opacity: .5;
+    }
+    .section-eyebrow { justify-content: center; text-align: center; }
+
+    h2 {
+      font-family: var(--font-head);
+      font-size: clamp(22px, 3vw, 36px);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 12px;
+      letter-spacing: -.01em;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--dim);
+      font-size: 16px;
+      max-width: 560px;
+      margin: 0 auto 60px;
+      font-weight: 300;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color .2s, transform .2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border);
+      transform: translateY(-3px);
+    }
+
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .feature-title {
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--dim);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* ─── How it works ──────────────────────────────────────────────────────── */
+    #how {
+      padding: 100px 0;
+      background: var(--bg2);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin-top: 60px;
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 12.5%;
+      right: 12.5%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), var(--accent), var(--border), transparent);
+    }
+
+    .step {
+      text-align: center;
+      padding: 0 20px;
+      position: relative;
+    }
+
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-head);
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent);
+      margin: 0 auto 20px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 20px rgba(79,195,247,.2);
+    }
+
+    .step-title {
+      font-family: var(--font-head);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* ─── About / Protocol ───────────────────────────────────────────────────── */
+    #about {
+      padding: 100px 0;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+      margin-top: 60px;
+    }
+
+    .about-text h3 {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .06em;
+      margin-bottom: 12px;
+      margin-top: 28px;
+    }
+
+    .about-text h3:first-child { margin-top: 0; }
+
+    .about-text p {
+      font-size: 15px;
+      color: var(--dim);
+      line-height: 1.8;
+      font-weight: 300;
+      margin-bottom: 16px;
+    }
+
+    .tech-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tech-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--dim);
+      font-weight: 300;
+    }
+
+    .tech-list li::before {
+      content: '→';
+      color: var(--accent);
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+
+    .tech-list li strong { color: var(--text); }
+
+    /* Terminal box */
+    .terminal {
+      background: #020508;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      font-family: var(--font-mono);
+    }
+
+    .terminal-bar {
+      background: #0c1220;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .t-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .t-dot:nth-child(1) { background: #ff5f57; }
+    .t-dot:nth-child(2) { background: #ffbd2e; }
+    .t-dot:nth-child(3) { background: #28c840; }
+
+    .terminal-label {
+      margin-left: 8px;
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: .05em;
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-size: 12px;
+      line-height: 2;
+    }
+
+    .t-comment { color: #3a5070; }
+    .t-key     { color: var(--accent); }
+    .t-str     { color: #a5f3a0; }
+    .t-num     { color: #ffd54f; }
+    .t-punct   { color: var(--dim); }
+
+    /* ─── Donate ────────────────────────────────────────────────────────────── */
+    #donate {
+      padding: 100px 0;
+      background: var(--bg2);
+    }
+
+    .donate-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .donate-card {
+      background: linear-gradient(135deg, #1a0f00 0%, #0f0900 100%);
+      border: 1px solid rgba(255,94,26,.3);
+      border-radius: 16px;
+      padding: 48px 40px;
+      margin-top: 40px;
+    }
+
+    .donate-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .donate-card h3 {
+      font-family: var(--font-head);
+      font-size: 20px;
+      font-weight: 700;
+      color: #ff9800;
+      margin-bottom: 16px;
+    }
+
+    .donate-card p {
+      color: var(--dim);
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
+
+    .btn-kofi {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      background: var(--kofi);
+      color: #fff;
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all .2s;
+    }
+
+    .btn-kofi:hover {
+      background: #ff7a3d;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255,94,26,.35);
+    }
+
+    .donate-note {
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(255,152,0,.5);
+      font-family: var(--font-mono);
+    }
+
+    /* ─── Download ──────────────────────────────────────────────────────────── */
+    #download {
+      padding: 100px 0;
+    }
+
+    .download-box {
+      max-width: 700px;
+      margin: 40px auto 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .download-header {
+      background: linear-gradient(135deg, #0a1a2e 0%, #06111e 100%);
+      padding: 32px 36px;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .download-win-icon {
+      width: 52px; height: 52px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .download-name {
+      font-family: var(--font-head);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .download-meta {
+      font-size: 12px;
+      color: var(--dim);
+      font-family: var(--font-mono);
+    }
+
+    .download-body {
+      padding: 28px 36px;
+    }
+
+    .download-reqs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .req-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--dim);
+      font-family: var(--font-mono);
+    }
+
+    .req-item::before {
+      content: '✓';
+      color: var(--accent);
+      font-size: 11px;
+    }
+
+    .download-btn-wrap {
+      display: flex;
+      gap: 12px;
+    }
+
+    .install-note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--dim);
+      font-family: var(--font-mono);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    /* ─── Footer ────────────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border2);
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .08em;
+      margin-bottom: 12px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 20px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: var(--dim);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      transition: color .2s;
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    .footer-disclaimer {
+      font-size: 11px;
+      color: #2a3a4a;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ─── Responsive ────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .hero-inner    { grid-template-columns: 1fr; gap: 40px; }
+      .hero-visual   { display: none; }
+      .stats-inner   { grid-template-columns: repeat(2, 1fr); }
+      .stat          { padding: 16px; border-right: none; border-bottom: 1px solid var(--border2); }
+      .steps         { grid-template-columns: 1fr 1fr; }
+      .steps::before { display: none; }
+      .about-grid    { grid-template-columns: 1fr; }
+      .download-reqs { grid-template-columns: 1fr; }
+      nav .nav-links { display: none; }
+    }
+
+    /* ─── Animations ────────────────────────────────────────────────────────── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .glow-pulse {
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(79,195,247,.2); }
+      50%       { box-shadow: 0 0 40px rgba(79,195,247,.5); }
+    }
+  </style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+<div class="wrapper">
+
+  <!-- ── Nav ── -->
+  <nav>
+    <a href="#" class="nav-logo">ORIGIN CONTROL</a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">Setup</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#donate">Support</a></li>
+    </ul>
+    <a href="#download" class="nav-download">↓ Download</a>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-content fade-up">
+          <div class="hero-eyebrow">Windows Desktop App</div>
+          <h1>Control Your<br/><span>Night Sky.</span></h1>
+          <p class="hero-desc">
+            A free, unofficial desktop companion for the Celestron Origin
+            Intelligent Home Observatory. Live view, full mount control,
+            YouTube & Twitch streaming, and real-time sky conditions — all
+            from your Windows PC.
+          </p>
+          <div class="hero-cta">
+            <a href="#download" class="btn-primary">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 14l-5-5h3V4h4v5h3l-5 5zM5 16h10v2H5z"/></svg>
+              Free Download
+            </a>
+            <a href="#features" class="btn-secondary">
+              See Features →
+            </a>
+          </div>
+          <div class="hero-meta">
+            <span class="hero-meta-item">Free forever</span>
+            <span class="hero-meta-item">No admin rights needed</span>
+            <span class="hero-meta-item">Windows 10 / 11</span>
+            <span class="hero-meta-item">No API keys required</span>
+          </div>
+        </div>
+
+        <div class="hero-visual fade-up" style="transition-delay:.2s">
+          <div class="scope-container">
+            <div class="orbit-ring"><div class="orbit-dot"></div></div>
+            <div class="orbit-ring"><div class="orbit-dot"></div></div>
+            <div class="orbit-ring"><div class="orbit-dot"></div></div>
+            <div class="scope-svg">
+              <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="80" cy="80" r="60" fill="#0a1520" stroke="#4fc3f7" stroke-width="1.5"/>
+                <!-- Telescope body -->
+                <rect x="48" y="72" width="64" height="16" rx="8" fill="#1e3a5a" transform="rotate(-35 80 80)"/>
+                <rect x="52" y="73" width="60" height="6" rx="3" fill="#2a5080" transform="rotate(-35 80 80)"/>
+                <!-- Lens -->
+                <circle cx="105" cy="55" r="9" fill="#0d2a4a" stroke="#4fc3f7" stroke-width="1.5"/>
+                <circle cx="104" cy="54" r="4" fill="#4fc3f7" opacity=".3"/>
+                <!-- Focuser -->
+                <rect x="48" y="77" width="14" height="10" rx="3" fill="#162a3a" transform="rotate(-35 80 80)"/>
+                <!-- Eyepiece -->
+                <rect x="56" y="88" width="8" height="16" rx="3" fill="#162a3a" transform="rotate(-35 80 80) rotate(60 62 92)"/>
+                <!-- Tripod legs -->
+                <line x1="80" y1="100" x2="55" y2="138" stroke="#2a4060" stroke-width="3" stroke-linecap="round"/>
+                <line x1="80" y1="100" x2="105" y2="138" stroke="#2a4060" stroke-width="3" stroke-linecap="round"/>
+                <line x1="80" y1="100" x2="80" y2="140" stroke="#2a4060" stroke-width="3" stroke-linecap="round"/>
+                <ellipse cx="80" cy="108" rx="12" ry="4" stroke="#2a4060" stroke-width="1.5" fill="none"/>
+                <!-- Stars -->
+                <circle cx="35" cy="35" r="1.5" fill="white" opacity=".8"/>
+                <circle cx="125" cy="30" r="1" fill="white" opacity=".6"/>
+                <circle cx="130" cy="50" r="1.5" fill="#4fc3f7" opacity=".7"/>
+                <circle cx="28" cy="55" r="1" fill="white" opacity=".5"/>
+                <circle cx="118" cy="120" r="1" fill="white" opacity=".4"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Stats bar ── -->
+  <div class="stats-bar">
+    <div class="container">
+      <div class="stats-inner">
+        <div class="stat fade-up">
+          <div class="stat-num">12</div>
+          <div class="stat-label">Radio Stations</div>
+        </div>
+        <div class="stat fade-up" style="transition-delay:.1s">
+          <div class="stat-num">30+</div>
+          <div class="stat-label">DSO Targets</div>
+        </div>
+        <div class="stat fade-up" style="transition-delay:.2s">
+          <div class="stat-num">1080p</div>
+          <div class="stat-label">Stream Quality</div>
+        </div>
+        <div class="stat fade-up" style="transition-delay:.3s">
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Free & Open</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Features ── -->
+  <section id="features">
+    <div class="container">
+      <div class="section-eyebrow">Capabilities</div>
+      <h2>Everything Your Observatory Needs</h2>
+      <p class="section-sub">Built on the same SmartScope WebSocket protocol as the official app — fully reverse-engineered and confirmed from live packet captures.</p>
+
+      <div class="features-grid">
+        <div class="feature-card fade-up">
+          <span class="feature-icon">🔭</span>
+          <div class="feature-title">Live View</div>
+          <p class="feature-desc">Real-time camera feed at full 3056×2048 resolution delivered over WebSocket at ~1 fps. Position, firmware and mount status all update live.</p>
+        </div>
+        <div class="feature-card fade-up" style="transition-delay:.05s">
+          <span class="feature-icon">🎯</span>
+          <div class="feature-title">Full Mount Control</div>
+          <p class="feature-desc">D-pad slew with 4 speed levels, Go-To by RA/Dec or object name, sidereal tracking, parking and a one-touch emergency stop.</p>
+        </div>
+        <div class="feature-card fade-up" style="transition-delay:.1s">
+          <span class="feature-icon">📡</span>
+          <div class="feature-title">YouTube & Twitch Streaming</div>
+          <p class="feature-desc">Stream live to YouTube (OAuth auto-login with QR code) or Twitch via stream key. 480p, 720p and 1080p quality presets. H.264 via FFmpeg.</p>
+        </div>
+        <div class="feature-card fade-up" style="transition-delay:.15s">
+          <span class="feature-icon">🎵</span>
+          <div class="feature-title">Live Background Radio</div>
+          <p class="feature-desc">12 SomaFM stations. Switch stations or adjust volume mid-stream with zero interruption — powered by an audio proxy that keeps FFmpeg running.</p>
+        </div>
+        <div class="feature-card fade-up" style="transition-delay:.2s">
+          <span class="feature-icon">⭐</span>
+          <div class="feature-title">Tonight's Best Targets</div>
+          <p class="feature-desc">Real-time DSO recommendations ranked by current altitude. Uses your telescope's live GPS coordinates. One click to slew directly to any target.</p>
+        </div>
+        <div class="feature-card fade-up" style="transition-delay:.25s">
+          <span class="feature-icon">🌤</span>
+          <div class="feature-title">Viewing Conditions</div>
+          <p class="feature-desc">Live sky score from Open-Meteo: cloud cover, dew risk, wind, visibility and precipitation — all scored 0-100 with colour-coded indicators.</p>
+        </div>
+        <div class="feature-card fade-up" style="transition-delay:.3s">
+          <span class="feature-icon">⚙</span>
+          <div class="feature-title">Telescope Settings</div>
+          <p class="feature-desc">Read and write live telescope configuration — camera specs, focuser auto-focus, mount config, dew heater, LED ring brightness and network settings.</p>
+        </div>
+        <div class="feature-card fade-up" style="transition-delay:.35s">
+          <span class="feature-icon">📷</span>
+          <div class="feature-title">Snapshot & Record</div>
+          <p class="feature-desc">Save full-resolution JPEG snapshots or record local MP4 video at any quality. Recording and streaming can run simultaneously.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── How it works ── -->
+  <section id="how">
+    <div class="container">
+      <div class="section-eyebrow">Getting Started</div>
+      <h2>Up and Running in Minutes</h2>
+      <p class="section-sub">No admin rights required. The installer handles Node.js and FFmpeg automatically.</p>
+
+      <div class="steps">
+        <div class="step fade-up">
+          <div class="step-num glow-pulse">1</div>
+          <div class="step-title">Download</div>
+          <p class="step-desc">Grab the ZIP from this page and extract it to any folder.</p>
+        </div>
+        <div class="step fade-up" style="transition-delay:.1s">
+          <div class="step-num">2</div>
+          <div class="step-title">Install</div>
+          <p class="step-desc">Run Install.bat — it downloads Node.js and FFmpeg automatically.</p>
+        </div>
+        <div class="step fade-up" style="transition-delay:.2s">
+          <div class="step-num">3</div>
+          <div class="step-title">Connect</div>
+          <p class="step-desc">Join your telescope's Wi-Fi and click Discover on Network.</p>
+        </div>
+        <div class="step fade-up" style="transition-delay:.3s">
+          <div class="step-num">4</div>
+          <div class="step-title">Observe</div>
+          <p class="step-desc">Live view starts automatically. Control, stream, and explore.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── About ── -->
+  <section id="about">
+    <div class="container">
+      <div class="section-eyebrow">About</div>
+      <h2>Built by an Astronomer, for Astronomers</h2>
+
+      <div class="about-grid">
+        <div class="about-text fade-up">
+          <h3>The Project</h3>
+          <p>Celestron Origin Control started as a personal project to bring full observatory control to Windows — the official Celestron Origin app is mobile-only, leaving desktop users without a way to control the telescope from their PC or stream sessions online.</p>
+          <p>The SmartScope WebSocket protocol was fully reverse-engineered from live network packet captures using PCAPdroid, giving this app access to every command the official app uses — slewing, GoTo, tracking, focuser control, camera settings, and more.</p>
+
+          <h3>How It Connects</h3>
+          <ul class="tech-list">
+            <li><strong>SmartScope WebSocket</strong> — same protocol as the official Celestron app, confirmed from packet analysis</li>
+            <li><strong>Live GPS location</strong> — read automatically from the Mount GetStatus broadcast every second</li>
+            <li><strong>Open-Meteo</strong> — free weather API, no key needed, 1km resolution</li>
+            <li><strong>SomaFM</strong> — royalty-free radio via a local audio proxy for seamless mid-stream switching</li>
+            <li><strong>FFmpeg</strong> — H.264 encoding piped from WebSocket frames to RTMP</li>
+          </ul>
+        </div>
+
+        <div class="fade-up" style="transition-delay:.15s">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="t-dot"></div>
+              <div class="t-dot"></div>
+              <div class="t-dot"></div>
+              <span class="terminal-label">SmartScope WebSocket — Slew Command</span>
+            </div>
+            <div class="terminal-body">
+              <span class="t-punct">{</span><br/>
+&nbsp;&nbsp;<span class="t-key">"Command"</span><span class="t-punct">: </span><span class="t-str">"Slew"</span><span class="t-punct">,</span><br/>
+&nbsp;&nbsp;<span class="t-key">"Destination"</span><span class="t-punct">: </span><span class="t-str">"Mount"</span><span class="t-punct">,</span><br/>
+&nbsp;&nbsp;<span class="t-key">"AltRate"</span><span class="t-punct">: </span><span class="t-num">9</span><span class="t-punct">,</span><br/>
+&nbsp;&nbsp;<span class="t-key">"AzmRate"</span><span class="t-punct">: </span><span class="t-num">0</span><span class="t-punct">,</span><br/>
+&nbsp;&nbsp;<span class="t-key">"Source"</span><span class="t-punct">: </span><span class="t-str">"OriginMobileApp"</span><span class="t-punct">,</span><br/>
+&nbsp;&nbsp;<span class="t-key">"Type"</span><span class="t-punct">: </span><span class="t-str">"Command"</span><br/>
+<span class="t-punct">}</span><br/>
+<br/>
+<span class="t-comment">// Mount GetStatus — live GPS in radians</span><br/>
+&nbsp;&nbsp;<span class="t-key">"Latitude"</span><span class="t-punct">: </span><span class="t-num">0.73281</span><span class="t-punct">,</span><br/>
+&nbsp;&nbsp;<span class="t-key">"Longitude"</span><span class="t-punct">: </span><span class="t-num">-1.24397</span><span class="t-punct">,</span><br/>
+&nbsp;&nbsp;<span class="t-key">"BatteryLevel"</span><span class="t-punct">: </span><span class="t-str">"HIGH"</span><br/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Donate ── -->
+  <section id="donate">
+    <div class="container">
+      <div class="donate-inner">
+        <div class="section-eyebrow">Support</div>
+        <h2>Keep the Stars Alive</h2>
+        <p class="section-sub">This app is completely free and will always be. If it enhances your nights at the eyepiece, a coffee goes a long way.</p>
+
+        <div class="donate-card fade-up">
+          <span class="donate-icon">☕</span>
+          <h3>Buy Me a Coffee</h3>
+          <p>Every donation helps fund development time, telescope sessions for testing, and keeping the project maintained and up to date with new Celestron firmware releases.</p>
+          <a href="https://ko-fi.com/guinnessstache" target="_blank" rel="noopener" class="btn-kofi">
+            <svg viewBox="0 0 24 24" width="18" fill="currentColor"><path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 5.46.46 10.094c.848 7.077 6.354 7.699 6.354 7.699h4.983s4.598-.291 6.432-4.823c.518-1.266.764-2.601.832-3.926h2.16c1.82 0 3.042-1.293 3.042-3.193 0-1.473-.643-2.057-.426-1.056zm-4.176 4.764c-.12.605-.318 1.192-.617 1.712-.892 1.567-2.453 2.19-4.288 2.19H10.43c-.396 0-.737-.165-.978-.459-.305-.372-.37-.874-.18-1.316l2.11-4.97H8.35L7.177 5.867h10.854c.63.136 2.553.722 2.553 2.667 0 1.236-.671 1.875-1.879 1.875h-2.16c.077.42.12.845.12 1.274 0 .617-.04 1.273-.96 2.029z"/></svg>
+            Support on Ko-fi
+          </a>
+          <div class="donate-note">ko-fi.com/guinnessstache · 0% platform fee</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Download ── -->
+  <section id="download">
+    <div class="container">
+      <div class="section-eyebrow">Download</div>
+      <h2>Get Celestron Origin Control</h2>
+      <p class="section-sub">Free. No account. No telemetry. Just unzip and run.</p>
+
+      <div class="download-box fade-up">
+        <div class="download-header">
+          <div class="download-win-icon">🔭</div>
+          <div>
+            <div class="download-name">CelestronOriginControl-Installer.zip</div>
+            <div class="download-meta">Latest release · Windows 10/11 · ~600 KB download · ~200 MB installed</div>
+          </div>
+        </div>
+        <div class="download-body">
+          <div class="download-reqs">
+            <span class="req-item">Windows 10 or 11 (64-bit)</span>
+            <span class="req-item">Celestron Origin telescope</span>
+            <span class="req-item">No admin rights needed</span>
+            <span class="req-item">Node.js auto-installed</span>
+            <span class="req-item">FFmpeg auto-installed</span>
+            <span class="req-item">Same Wi-Fi as telescope</span>
+          </div>
+          <div class="download-btn-wrap">
+            <a href="CelestronOriginControl-Installer.zip" class="btn-primary" download>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 14l-5-5h3V4h4v5h3l-5 5zM5 16h10v2H5z"/></svg>
+              Download ZIP
+            </a>
+            <a href="CelestronOriginControl_Manual.pdf" class="btn-secondary" target="_blank">
+              📄 User Manual (PDF)
+            </a>
+          </div>
+          <div class="install-note">
+            Extract ZIP → double-click <code style="color:var(--accent)">Install.bat</code> → done.<br/>
+            To uninstall: run <code style="color:var(--accent)">Uninstall.bat</code> or use Windows Apps &amp; Features.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="container">
+      <div class="footer-logo">CELESTRON ORIGIN CONTROL</div>
+      <ul class="footer-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">Setup</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="https://ko-fi.com/guinnessstache" target="_blank" rel="noopener">Ko-fi</a></li>
+        <li><a href="CelestronOriginControl_Manual.pdf" target="_blank">Manual</a></li>
+      </ul>
+      <p class="footer-disclaimer">
+        Celestron Origin Control is an unofficial third-party application not affiliated with,
+        endorsed by, or supported by Celestron LLC. "Celestron" and "Origin" are trademarks of
+        Celestron Acquisition, LLC. The SmartScope protocol was reverse-engineered for
+        interoperability purposes only.
+      </p>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // ── Starfield ──────────────────────────────────────────────────────────────
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    const count = Math.floor((canvas.width * canvas.height) / 4000);
+    for (let i = 0; i < count; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.4 + 0.2,
+        a: Math.random(),
+        speed: Math.random() * 0.003 + 0.001,
+        phase: Math.random() * Math.PI * 2,
+        color: Math.random() > 0.9 ? '#4fc3f7' : Math.random() > 0.95 ? '#ffd54f' : '#ffffff',
+      });
+    }
+  }
+
+  function drawStars(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const s of stars) {
+      const alpha = s.a * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.color;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function tick(t) {
+    drawStars(t);
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(); });
+  resize();
+  initStars();
+  requestAnimationFrame(tick);
+
+  // ── Scroll fade-in ─────────────────────────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
